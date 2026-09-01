@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: shortener_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: YOUR_DB_ROOT_PASSWORD
+      MYSQL_DATABASE: url_shortener_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: YOUR_DB_PASSWORD
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "admin", "-padmin123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  tomcat:
+    image: tomcat:11-jdk17
+    container_name: shortener_tomcat
+    environment:
+      DB_HOST: shortener_mysql
+      MAIL_SMTP_HOST: smtp.gmail.com
+      MAIL_SMTP_PORT: 587
+      MAIL_SMTP_USER: YOUR_MAIL
+      MAIL_SMTP_PASS: YOUR_MAIL_PASS
+      MAIL_FROM: YOUR_MAIL
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./target/bm470.war:/usr/local/tomcat/webapps/bm470.war
+      - ./logs:/usr/local/tomcat/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

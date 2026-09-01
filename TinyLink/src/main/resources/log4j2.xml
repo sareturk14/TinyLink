@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <Properties>
+        <Property name="LOG_DIR">logs</Property>
+        <Property name="LOG_FILE">${LOG_DIR}/bm470-app.log</Property>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%logger{30}] - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+
+        <!-- Konsol appender -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+
+        <!--
+            Döngüsel dosya appender:
+              - Aktif dosya : logs/bm470-app.log
+              - Arşiv       : logs/bm470-app-1.log ... logs/bm470-app-10.log
+              - Her dosya en fazla 5 MB
+              - En fazla 10 arşiv tutulur; 11. rollover'da en eski arşiv (bm470-app-10.log) silinir
+        -->
+        <RollingFile name="RollingFile"
+                     fileName="${LOG_FILE}"
+                     filePattern="${LOG_DIR}/bm470-app-%i.log">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <!-- min=1, max=10 → arşiv dosyaları 1..10 arasında döner; 10'u dolunca en eski silinir -->
+            <DefaultRolloverStrategy min="1" max="10"/>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+
+        <!-- Proje paketi: tüm istekler, servisler ve DAO logları -->
+        <Logger name="tr.edu.duzce.mf.bm" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+
+        <!-- Spring MVC ve context başlatma logları -->
+        <Logger name="org.springframework" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+
+        <!-- Hibernate SQL ve DDL logları -->
+        <Logger name="org.hibernate" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+
+        <!-- c3p0 bağlantı havuzu uyarıları -->
+        <Logger name="com.mchange" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+
+        <!-- Diğer tüm kütüphaneler sadece WARN ve üzeri -->
+        <Root level="WARN">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>
